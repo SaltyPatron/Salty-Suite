@@ -1,0 +1,17 @@
+#!/bin/sh
+# host-lock MODE PATH [WAIT] -- COMMAND [ARG...]
+#   COMMAND run while PATH is held in MODE (shared | exclusive) through host-lock.sh, on descriptor 9, which COMMAND and
+#   its children inherit (a nested host-lock on the same PATH and descriptor takes it again at once). Exits with
+#   COMMAND's status, or host_lock's (2 misused, 3 not acquired by WAIT seconds) when COMMAND never ran.
+set -e
+# shellcheck source=host-lock.sh
+. "$(dirname "$0")/host-lock.sh"
+[ $# -ge 4 ] || { echo "usage: host-lock MODE PATH [WAIT] -- COMMAND [ARG...]" >&2; exit 2; }
+mode=$1 path=$2; shift 2
+wait=
+if [ "$1" != -- ]; then wait=$1; shift; fi
+[ "$1" = -- ] || { echo "usage: host-lock MODE PATH [WAIT] -- COMMAND [ARG...]" >&2; exit 2; }
+shift
+rc=0; host_lock "$mode" 9 "$path" "$wait" || rc=$?
+[ "$rc" = 0 ] || exit "$rc"
+exec "$@"
