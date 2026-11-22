@@ -1,0 +1,40 @@
+name: salty-suite
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'machine-env-v*'
+      - 'pg-tune-v*'
+      - 'deps-installer-v*'
+      - 'artifact-store-v*'
+  pull_request:
+permissions:
+  contents: write
+jobs:
+  test-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run Python unittest suites (Linux)
+        run: |
+          for d in host-lock machine-env pg-tune deps-installer artifact-store; do
+            echo "=== $d ==="
+            python3 -B -m unittest discover -s "$d/tests" -v
+          done
+  test-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run Python unittest suites (Windows)
+        run: |
+          foreach ($d in @('host-lock','machine-env','pg-tune','deps-installer','artifact-store')) {
+            Write-Host "=== $d ==="
+            python -B -m unittest discover -s "$d\tests" -v
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }

@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+here=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+if command -v python3 >/dev/null 2>&1 && python3 --version >/dev/null 2>&1; then
+    exec python3 "$here/pg_tune.py" "$@"
+elif command -v py >/dev/null 2>&1 && py -3 --version >/dev/null 2>&1; then
+    exec py -3 "$here/pg_tune.py" "$@"
+elif command -v python >/dev/null 2>&1 && python --version >/dev/null 2>&1; then
+    exec python "$here/pg_tune.py" "$@"
+fi
+echo "pg-tune: python3 not found in PATH" >&2
+exit 127
